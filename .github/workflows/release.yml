@@ -26,6 +26,9 @@ jobs:
   release:
     if: github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, '[skip-ci]')
     runs-on: ubuntu-latest
+    env:
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -85,9 +88,6 @@ jobs:
           echo "tag=v$new_version" >> "$GITHUB_OUTPUT"
 
       - name: Pre-flight (verify version is publishable)
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
-          OVSX_PAT: ${{ secrets.OVSX_PAT }}
         run: |
           set -euo pipefail
           version="${{ steps.version.outputs.version }}"
@@ -139,14 +139,10 @@ jobs:
         run: pnpm run vsce:package
 
       - name: Publish to VS Code Marketplace
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
         run: pnpm run vsce:publish
 
       - name: Publish to Open VSX
-        if: ${{ secrets.OVSX_PAT != '' }}
-        env:
-          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        if: env.OVSX_PAT != ''
         run: pnpm run ovsx:publish
 
       - name: Create GitHub release
