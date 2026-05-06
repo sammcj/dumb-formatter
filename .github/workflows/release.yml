@@ -3,17 +3,34 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*.*.*'
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version bump type
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: patch
 
 permissions:
   contents: write
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
-  publish:
+  release:
+    if: github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, '[skip-ci]')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: pnpm/action-setup@903f9c1a6ebcba6cf41d87230be49611ac97822e # v6.0.3
         with:
@@ -24,10 +41,99 @@ jobs:
           node-version: 24
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Typecheck
+        run: pnpm exec tsc --noEmit
 
       - name: Build bundle
         run: NODE_ENV=production pnpm run compile
+
+      - name: Unit tests
+        run: pnpm run test:unit
+
+      - name: Compile tests for integration suite
+        run: pnpm exec tsc -p ./
+
+      - name: Integration tests
+        run: xvfb-run -a pnpm run test:integration
+
+      - name: Determine bump type
+        id: bump
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "bump=${{ inputs.bump }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "bump=patch" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump version
+        id: version
+        run: |
+          npm version "${{ steps.bump.outputs.bump }}" --no-git-tag-version
+          new_version=$(node -p "require('./package.json').version")
+          echo "version=$new_version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$new_version" >> "$GITHUB_OUTPUT"
+
+      - name: Pre-flight (verify version is publishable)
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          set -euo pipefail
+          version="${{ steps.version.outputs.version }}"
+          tag="${{ steps.version.outputs.tag }}"
+          publisher=$(node -p "require('./package.json').publisher")
+          name=$(node -p "require('./package.json').name")
+          ext_id="${publisher}.${name}"
+
+          # Local tag check
+          if git rev-parse --verify --quiet "refs/tags/${tag}" >/dev/null; then
+            echo "::error::Tag ${tag} already exists locally"
+            exit 1
+          fi
+
+          # Remote tag check
+          if git ls-remote --tags origin "refs/tags/${tag}" | grep -q .; then
+            echo "::error::Tag ${tag} already exists on origin"
+            exit 1
+          fi
+
+          # VS Code Marketplace check (skip if extension hasn't been published before)
+          if pnpm exec vsce show "${ext_id}" --json >/tmp/vsce-show.json 2>/dev/null; then
+            if jq -e --arg v "${version}" '(.versions // []) | map(.version) | index($v)' /tmp/vsce-show.json >/dev/null; then
+              echo "::error::Version ${version} is already on the VS Code Marketplace"
+              exit 1
+            fi
+            echo "Marketplace check passed: ${version} not yet published"
+          else
+            echo "Extension ${ext_id} not yet on Marketplace (first publish)"
+          fi
+
+          # Open VSX check (only if token is set; non-fatal if registry is unreachable)
+          if [[ -n "${OVSX_PAT:-}" ]]; then
+            if curl -fsSL "https://open-vsx.org/api/${publisher}/${name}/${version}" >/dev/null 2>&1; then
+              echo "::error::Version ${version} is already on Open VSX"
+              exit 1
+            fi
+            echo "Open VSX check passed: ${version} not yet published"
+          fi
+
+      - name: Commit and tag
+        run: |
+          git add package.json
+          git commit -m "chore: release ${{ steps.version.outputs.tag }} [skip-ci]"
+          git tag "${{ steps.version.outputs.tag }}"
+          git push origin main --follow-tags
 
       - name: Package
         run: pnpm run vsce:package
@@ -38,6 +144,7 @@ jobs:
         run: pnpm run vsce:publish
 
       - name: Publish to Open VSX
+        if: ${{ secrets.OVSX_PAT != '' }}
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
         run: pnpm run ovsx:publish
@@ -45,5 +152,6 @@ jobs:
       - name: Create GitHub release
         uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
         with:
+          tag_name: ${{ steps.version.outputs.tag }}
           files: '*.vsix'
           generate_release_notes: true
