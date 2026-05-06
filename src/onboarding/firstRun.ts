@@ -13,7 +13,7 @@ export async function runFirstRunPromptIfNeeded(context: vscode.ExtensionContext
   )
 
   if (choice === 'Open walkthrough') {
-    await vscode.commands.executeCommand('workbench.action.openWalkthrough', 'sammcj.dumb-formatter#dumb-formatter.gettingStarted', false)
+    await vscode.commands.executeCommand('workbench.action.openWalkthrough', 'SamMcLeod.dumb-formatter#dumb-formatter.gettingStarted', false)
     await context.globalState.update(STATE_KEY, true)
   } else if (choice === "Don't ask again") {
     await context.globalState.update(STATE_KEY, true)

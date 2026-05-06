@@ -53,7 +53,7 @@ install-vsix: package
 	code --install-extension "$$vsix" --force
 
 uninstall-vsix:
-	code --uninstall-extension sammcj.dumb-formatter
+	code --uninstall-extension SamMcLeod.dumb-formatter
 
 publish-marketplace: package
 	pnpm run vsce:publish

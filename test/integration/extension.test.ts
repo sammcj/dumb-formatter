@@ -1,7 +1,7 @@
 import * as assert from 'node:assert/strict'
 import * as vscode from 'vscode'
 
-const EXT_ID = 'sammcj.dumb-formatter'
+const EXT_ID = 'SamMcLeod.dumb-formatter'
 const SECTION = 'dumb-formatter'
 
 async function resetSettings(): Promise<void> {
