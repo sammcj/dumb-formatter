@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json.schemastore.org/mocharc.json",
+  "extension": ["ts"],
+  "node-option": ["import=tsx"],
+  "spec": "test/unit/**/*.test.ts",
+  "ui": "bdd",
+  "timeout": 10000
+}

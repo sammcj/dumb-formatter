@@ -1,0 +1,339 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "dumb-formatter",
+  "displayName": "Dumb Formatter",
+  "description": "Remove smart quotes, em dashes, non-breaking spaces, zero-width characters, BOM, bidi marks and other hidden Unicode pasted from Word, Google Docs, ChatGPT or Claude. Replace with plain ASCII.",
+  "version": "0.1.0",
+  "publisher": "sammcj",
+  "license": "MIT",
+  "author": {
+    "name": "Sam McLeod",
+    "url": "https://smcleod.net"
+  },
+  "homepage": "https://github.com/sammcj/dumb-formatter",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sammcj/dumb-formatter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sammcj/dumb-formatter/issues"
+  },
+  "engines": {
+    "vscode": "^1.118.0"
+  },
+  "categories": [
+    "Formatters"
+  ],
+  "keywords": [
+    "smart quotes",
+    "curly quotes",
+    "straight quotes",
+    "em dash",
+    "en dash",
+    "dashes",
+    "non-breaking space",
+    "nbsp",
+    "zero-width space",
+    "soft hyphen",
+    "bom",
+    "bidi",
+    "ligatures",
+    "unicode",
+    "ascii",
+    "plain text",
+    "cleanup",
+    "word",
+    "google docs",
+    "chatgpt",
+    "claude",
+    "llm",
+    "paste",
+    "format on save",
+    "format on paste"
+  ],
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#2B3440",
+    "theme": "dark"
+  },
+  "main": "./dist/extension.js",
+  "activationEvents": ["onStartupFinished"],
+  "contributes": {
+    "commands": [
+      {
+        "command": "dumb-formatter.replaceInFile",
+        "title": "Replace Smart Formatting in File",
+        "category": "Dumb Formatter"
+      },
+      {
+        "command": "dumb-formatter.replaceInSelection",
+        "title": "Replace Smart Formatting in Selection",
+        "category": "Dumb Formatter"
+      },
+      {
+        "command": "dumb-formatter.replaceInWorkspace",
+        "title": "Replace Smart Formatting Across Workspace",
+        "category": "Dumb Formatter"
+      },
+      {
+        "command": "dumb-formatter.replaceInDocFiles",
+        "title": "Replace Smart Formatting in Documentation Files",
+        "category": "Dumb Formatter"
+      },
+      {
+        "command": "dumb-formatter.toggleDiagnostics",
+        "title": "Toggle Inline Diagnostics",
+        "category": "Dumb Formatter"
+      },
+      {
+        "command": "dumb-formatter.enableOnSave",
+        "title": "Enable Replace on Save",
+        "category": "Dumb Formatter"
+      },
+      {
+        "command": "dumb-formatter.enableOnPaste",
+        "title": "Enable Replace on Paste",
+        "category": "Dumb Formatter"
+      },
+      {
+        "command": "dumb-formatter.enableDiagnostics",
+        "title": "Enable Inline Diagnostics",
+        "category": "Dumb Formatter"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "when": "editorHasSelection",
+          "command": "dumb-formatter.replaceInSelection",
+          "group": "1_modification@99"
+        },
+        {
+          "when": "!editorReadonly",
+          "command": "dumb-formatter.replaceInFile",
+          "group": "1_modification@99"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "dumb-formatter.replaceInFile",
+          "when": "!explorerResourceIsFolder",
+          "group": "7_modification"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "dumb-formatter.enableOnSave",
+          "when": "false"
+        },
+        {
+          "command": "dumb-formatter.enableOnPaste",
+          "when": "false"
+        },
+        {
+          "command": "dumb-formatter.enableDiagnostics",
+          "when": "false"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Dumb Formatter",
+      "properties": {
+        "dumb-formatter.categories.dashes": {
+          "type": "boolean",
+          "default": true,
+          "description": "Replace em-dashes, en-dashes, and Unicode minus with ASCII hyphen."
+        },
+        "dumb-formatter.categories.dashesEmReplacement": {
+          "type": "string",
+          "enum": ["-", "--"],
+          "default": "-",
+          "description": "Replacement for the em-dash specifically."
+        },
+        "dumb-formatter.categories.quotes": {
+          "type": "boolean",
+          "default": true,
+          "description": "Replace curly/smart single and double quotes with straight ASCII quotes."
+        },
+        "dumb-formatter.categories.whitespace": {
+          "type": "boolean",
+          "default": true,
+          "description": "Replace non-breaking space and other Unicode spaces with a regular space."
+        },
+        "dumb-formatter.categories.ellipsis": {
+          "type": "boolean",
+          "default": true,
+          "description": "Replace U+2026 ellipsis with three ASCII dots."
+        },
+        "dumb-formatter.categories.bullets": {
+          "type": "boolean",
+          "default": true,
+          "description": "Replace common Unicode bullet glyphs with ASCII hyphen."
+        },
+        "dumb-formatter.categories.softHyphens": {
+          "type": "boolean",
+          "default": true,
+          "description": "Remove soft hyphen characters."
+        },
+        "dumb-formatter.categories.zeroWidth": {
+          "type": "boolean",
+          "default": true,
+          "description": "Remove zero-width space."
+        },
+        "dumb-formatter.categories.invisibles": {
+          "type": "boolean",
+          "default": true,
+          "description": "Remove BOM, ZWJ/ZWNJ, word joiner, and bidi formatting marks."
+        },
+        "dumb-formatter.categories.ligatures": {
+          "type": "boolean",
+          "default": true,
+          "description": "Expand presentation-form ligatures (fi, fl, ffi, ffl) to component letters."
+        },
+        "dumb-formatter.onSave.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Replace smart formatting on file save."
+        },
+        "dumb-formatter.onPaste.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Replace smart formatting in pasted text."
+        },
+        "dumb-formatter.diagnostics.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Highlight smart characters inline with diagnostics and quick fixes."
+        },
+        "dumb-formatter.diagnostics.severity": {
+          "type": "string",
+          "enum": ["error", "warning", "information", "hint"],
+          "default": "information",
+          "description": "Severity of diagnostics for smart characters."
+        },
+        "dumb-formatter.maxFileSizeMB": {
+          "type": "number",
+          "default": 10,
+          "minimum": 0.1,
+          "description": "Maximum file size to process. Files larger than this trigger a warning but processing still continues."
+        },
+        "dumb-formatter.workspace.respectGitignore": {
+          "type": "boolean",
+          "default": true,
+          "description": "Skip files matched by the workspace's .gitignore during workspace-wide commands."
+        },
+        "dumb-formatter.workspace.respectVSCodeExcludes": {
+          "type": "boolean",
+          "default": true,
+          "description": "Honour files.exclude and search.exclude during workspace-wide commands."
+        },
+        "dumb-formatter.workspace.skipBinaries": {
+          "type": "boolean",
+          "default": true,
+          "description": "Skip files detected as binary (extension list and null-byte sniff)."
+        },
+        "dumb-formatter.workspace.exclude": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Additional glob patterns to exclude during workspace-wide commands."
+        },
+        "dumb-formatter.docFileExtensions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["md", "markdown", "mdx", "rst", "txt", "adoc", "asciidoc", "org", "typ"],
+          "description": "Extensions (without leading dot) treated as documentation files. Auto features (replace-on-save, diagnostics) only fire on these. Add an extension here if you want auto-cleanup on it."
+        }
+      }
+    },
+    "walkthroughs": [
+      {
+        "id": "dumb-formatter.gettingStarted",
+        "title": "Get started with Dumb Formatter",
+        "description": "Pick which automatic features to turn on.",
+        "steps": [
+          {
+            "id": "welcome",
+            "title": "What this extension does",
+            "description": "Strips smart Unicode characters (em dashes, smart quotes, NBSPs, BOM, bidi marks, etc.) and replaces them with plain ASCII.\n\nAll commands are available without enabling anything else.",
+            "media": {
+              "markdown": "media/walkthrough/welcome.md"
+            }
+          },
+          {
+            "id": "enable-onsave",
+            "title": "Replace on save?",
+            "description": "Run a fast cleanup pass each time you save. Skipped for files larger than 1 MB.\n[Enable replace on save](command:dumb-formatter.enableOnSave)",
+            "media": {
+              "markdown": "media/walkthrough/onsave.md"
+            },
+            "completionEvents": [
+              "onSettingChanged:dumb-formatter.onSave.enabled"
+            ]
+          },
+          {
+            "id": "enable-onpaste",
+            "title": "Replace on paste?",
+            "description": "Clean smart characters out of pasted text as it lands in the editor.\n[Enable replace on paste](command:dumb-formatter.enableOnPaste)",
+            "media": {
+              "markdown": "media/walkthrough/onpaste.md"
+            },
+            "completionEvents": [
+              "onSettingChanged:dumb-formatter.onPaste.enabled"
+            ]
+          },
+          {
+            "id": "enable-diagnostics",
+            "title": "Inline diagnostics?",
+            "description": "Highlight smart characters as you type, with one-click quick fixes.\n[Enable diagnostics](command:dumb-formatter.enableDiagnostics)",
+            "media": {
+              "markdown": "media/walkthrough/diagnostics.md"
+            },
+            "completionEvents": [
+              "onSettingChanged:dumb-formatter.diagnostics.enabled"
+            ]
+          },
+          {
+            "id": "try-it",
+            "title": "Try it",
+            "description": "Open the command palette and run \"Dumb Formatter: Replace Smart Formatting in File\".",
+            "media": {
+              "markdown": "media/walkthrough/tryit.md"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "package": "NODE_ENV=production node esbuild.mjs",
+    "lint": "eslint src test",
+    "lint:fix": "eslint src test --fix",
+    "test:unit": "mocha",
+    "test:integration": "vscode-test",
+    "test": "pnpm run test:unit && pnpm run test:integration",
+    "vsce:package": "vsce package --no-dependencies",
+    "vsce:publish": "vsce publish --no-dependencies",
+    "ovsx:publish": "ovsx publish --no-dependencies"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^25.6.0",
+    "@types/vscode": "^1.118.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.9.1",
+    "esbuild": "^0.28.0",
+    "eslint": "^10.3.0",
+    "mocha": "^11.7.5",
+    "ovsx": "^0.10.11",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.2"
+  },
+  "dependencies": {
+    "ignore": "^7.0.5"
+  }
+}
