@@ -3,7 +3,7 @@
   "name": "dumb-formatter",
   "displayName": "Dumb Formatter",
   "description": "Replace smart formatting - quotes, em dashes, non-breaking spaces, zero-width characters, BOM, bidi marks and other hidden Unicode pasted from Word, Google Docs, ChatGPT or Claude - with plain formatting / ASCII.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "publisher": "SamMcLeod",
   "license": "MIT",
   "author": {
@@ -57,7 +57,9 @@
     "theme": "dark"
   },
   "main": "./dist/extension.js",
-  "activationEvents": ["onStartupFinished"],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "contributes": {
     "commands": [
       {
@@ -146,7 +148,10 @@
         },
         "dumb-formatter.categories.dashesEmReplacement": {
           "type": "string",
-          "enum": ["-", "--"],
+          "enum": [
+            "-",
+            "--"
+          ],
           "default": "-",
           "description": "Replacement for the em-dash specifically."
         },
@@ -207,7 +212,12 @@
         },
         "dumb-formatter.diagnostics.severity": {
           "type": "string",
-          "enum": ["error", "warning", "information", "hint"],
+          "enum": [
+            "error",
+            "warning",
+            "information",
+            "hint"
+          ],
           "default": "information",
           "description": "Severity of diagnostics for smart characters."
         },
@@ -234,14 +244,28 @@
         },
         "dumb-formatter.workspace.exclude": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "default": [],
           "description": "Additional glob patterns to exclude during workspace-wide commands."
         },
         "dumb-formatter.docFileExtensions": {
           "type": "array",
-          "items": { "type": "string" },
-          "default": ["md", "markdown", "mdx", "rst", "txt", "adoc", "asciidoc", "org", "typ"],
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "md",
+            "markdown",
+            "mdx",
+            "rst",
+            "txt",
+            "adoc",
+            "asciidoc",
+            "org",
+            "typ"
+          ],
           "description": "Extensions (without leading dot) treated as documentation files. Auto features (replace-on-save, diagnostics) only fire on these. Add an extension here if you want auto-cleanup on it."
         }
       }
