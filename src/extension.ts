@@ -32,9 +32,9 @@ export function activate(context: vscode.ExtensionContext): void {
       const cfg = getConfig()
       await setSetting('diagnostics.enabled', !cfg.diagnosticsEnabled)
     }),
-    vscode.commands.registerCommand('dumb-formatter.enableOnSave', () => setSetting('onSave.enabled', true)),
-    vscode.commands.registerCommand('dumb-formatter.enableOnPaste', () => setSetting('onPaste.enabled', true)),
-    vscode.commands.registerCommand('dumb-formatter.enableDiagnostics', () => setSetting('diagnostics.enabled', true)),
+    vscode.commands.registerCommand('dumb-formatter.enableOnSave', () => enableFeature('onSave.enabled', 'Replace on save enabled')),
+    vscode.commands.registerCommand('dumb-formatter.enableOnPaste', () => enableFeature('onPaste.enabled', 'Replace on paste enabled')),
+    vscode.commands.registerCommand('dumb-formatter.enableDiagnostics', () => enableFeature('diagnostics.enabled', 'Inline diagnostics enabled')),
   )
 
   syncFeatureProviders(state, context)
@@ -98,6 +98,18 @@ function syncFeatureProviders(state: ToggleableState, context: vscode.ExtensionC
     state.saveDisposable = undefined
     log.info('Save hook disabled')
   }
+}
+
+async function enableFeature(key: 'onSave.enabled' | 'onPaste.enabled' | 'diagnostics.enabled', message: string): Promise<void> {
+  try {
+    await setSetting(key, true)
+  } catch (err) {
+    const log = getLogger()
+    log.error(`Failed to enable ${key}: ${err instanceof Error ? err.message : String(err)}`)
+    void vscode.window.showErrorMessage(`Dumb Formatter: could not update setting ${key}.`)
+    return
+  }
+  void vscode.window.showInformationMessage(`Dumb Formatter: ${message}.`)
 }
 
 export function deactivate(): void {
