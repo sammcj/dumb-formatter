@@ -3,7 +3,7 @@
   "name": "dumb-formatter",
   "displayName": "Dumb Formatter",
   "description": "Replace smart formatting - quotes, em dashes, non-breaking spaces, zero-width characters, BOM, bidi marks and other hidden Unicode pasted from Word, Google Docs, ChatGPT or Claude - with plain formatting / ASCII.",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "publisher": "SamMcLeod",
   "license": "MIT",
   "author": {
